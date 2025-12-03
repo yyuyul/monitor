@@ -246,9 +246,20 @@ export class BinanceAnnouncementMonitor extends BaseMonitor {
             }
 
             const response = await fetch('https://api.binance.com/api/v3/time', fetchOptions);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
             const data = await response.json();
             console.log('⏰ 获取Binance服务器时间成功');
+            console.log(`📦 API响应数据:`, JSON.stringify(data));
             console.log(`🕐 服务器时间戳: ${data.serverTime}`);
+            
+            if (!data.serverTime) {
+                throw new Error('服务器时间戳为空');
+            }
+            
             return data.serverTime;
         } catch (error) {
             console.warn('⚠️  获取服务器时间失败，使用本地时间:', error.message);
