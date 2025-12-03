@@ -47,7 +47,7 @@ export class BinanceAnnouncementMonitor extends BaseMonitor {
         this.reconnectTimeout = null;
         this.connectionStartTime = null;
         this.dailyReconnectTimeout = null;
-        
+
         // 去重机制 - 混合内存+数据库方案
         this.processedAnnouncements = new Set(); // 内存缓存，用于快速查询
         this.announcementCacheTimeout = 24 * 60 * 60 * 1000; // 24小时缓存
@@ -248,6 +248,7 @@ export class BinanceAnnouncementMonitor extends BaseMonitor {
             const response = await fetch('https://api.binance.com/api/v3/time', fetchOptions);
             const data = await response.json();
             console.log('⏰ 获取Binance服务器时间成功');
+            console.log(`🕐 服务器时间戳: ${data.serverTime}`);
             return data.serverTime;
         } catch (error) {
             console.warn('⚠️  获取服务器时间失败，使用本地时间:', error.message);
@@ -262,6 +263,8 @@ export class BinanceAnnouncementMonitor extends BaseMonitor {
         const timestamp = await this.getBinanceServerTime();
         const random = this.generateRandomString(32);
         const topic = this.topics.join('|');
+
+        console.log(`🕐 使用时间戳: ${timestamp}`);
 
         // 构建签名参数（不包含apiKey）
         const params = {
@@ -731,7 +734,7 @@ export class BinanceAnnouncementMonitor extends BaseMonitor {
                 return false;
             }
         }
-        
+
         // 其他类型的消息暂时不处理
         return false;
     }
