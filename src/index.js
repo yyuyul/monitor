@@ -35,9 +35,9 @@ class MultiSourceMonitorApp {
 
             // 2. 初始化数据库管理器（Twitter监控和Binance去重都需要）
             const needsDatabase = config.system.enabledModules.includes('twitter-official') ||
-                                 config.system.enabledModules.includes('twitter-openapi') ||
-                                 config.system.enabledModules.includes('binance-announcement') ||
-                                 config.system.enabledModules.includes('binance-price');
+                config.system.enabledModules.includes('twitter-openapi') ||
+                config.system.enabledModules.includes('binance-announcement') ||
+                config.system.enabledModules.includes('binance-price');
 
             if (needsDatabase) {
                 console.log('🗄️  初始化数据库连接...');
@@ -102,6 +102,16 @@ class MultiSourceMonitorApp {
                 this.showSystemStatus();
             }, 3000);
 
+            // 6. 定期内存检查（可选，用于排查内存泄漏）
+            if (process.env.ENABLE_MEMORY_CHECK === 'true') {
+                setInterval(() => {
+                    const usage = process.memoryUsage();
+                    const heapUsedMB = Math.round(usage.heapUsed / 1024 / 1024);
+                    const rssMB = Math.round(usage.rss / 1024 / 1024);
+                    console.log(`💾 内存使用: Heap ${heapUsedMB}MB, RSS ${rssMB}MB`);
+                }, 5 * 60 * 1000); // 每 5 分钟
+            }
+
         } catch (error) {
             console.error('❌ 系统启动失败:', error.message);
             process.exit(1);
@@ -144,12 +154,12 @@ class MultiSourceMonitorApp {
             res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
             res.setHeader('Content-Type', 'application/json');
 
-            if ((req.method === 'GET' || req.method === 'HEAD') && req.url === '/health') {
-                // 健康检查端点
+            if ((req.method === 'GET' || req.method === 'HEAD') && (req.url === '/health' || req.url === '/healthz' || req.url === '/')) {
+                // 健康检查端点（支持 /, /health, /healthz）
                 try {
                     const status = this.orchestrator.getSystemStatus();
                     const isHealthy = status.orchestrator.status === 'running' &&
-                                    status.orchestrator.activeModules > 0;
+                        status.orchestrator.activeModules > 0;
 
                     res.statusCode = isHealthy ? 200 : 503;
 

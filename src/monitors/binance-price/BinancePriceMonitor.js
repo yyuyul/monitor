@@ -752,6 +752,11 @@ export class BinancePriceMonitor extends BaseMonitor {
             const response = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbols=[${symbolsParam}]`, fetchOptions);
 
             if (!response.ok) {
+                // 418 是 IP 被临时限制，不是致命错误
+                if (response.status === 418) {
+                    console.warn('⚠️  IP 被 Binance 临时限制 (418)，将在下次重试');
+                    return {}; // 返回空对象，不抛出错误
+                }
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
 
