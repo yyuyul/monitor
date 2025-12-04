@@ -117,9 +117,66 @@ curl http://localhost:3000/health
 curl http://localhost:3000/status
 ```
 
-## 🚀 Render部署
+## 🚀 部署
 
-Railway不再提供免费版服务，推荐使用Render进行部署。
+### Fly.io 部署（推荐）⭐
+
+Fly.io 提供真正的免费额度（3个256MB实例），不会自动关闭服务。
+
+#### 方式 1：网页部署（最简单）
+
+1. **注册账号**
+   - 访问 [fly.io](https://fly.io) 注册账号
+   - 需要信用卡验证（但不会扣费）
+
+2. **连接 GitHub**
+   - Dashboard → 创建新应用
+   - 选择 "Deploy from GitHub"
+   - 授权并选择此仓库
+
+3. **配置应用**
+   - 应用名称：自定义（如 `twitter-monitor`）
+   - 区域：选择 `sin`（新加坡）或 `hkg`（香港）
+   - 实例大小：`shared-cpu-1x` + `256MB`（免费）
+
+4. **设置环境变量**
+   - Dashboard → 你的应用 → Secrets
+   - 添加所有 `.env` 中的环境变量
+
+5. **部署**
+   - 点击 "Deploy" 按钮
+   - 等待构建和部署完成
+
+6. **查看状态**
+   - Dashboard 中查看日志和状态
+   - 访问 `https://你的应用名.fly.dev/health` 测试
+
+#### 方式 2：命令行部署（高级）
+
+```bash
+# 1. 安装 Fly CLI
+brew install flyctl  # macOS
+
+# 2. 登录
+flyctl auth login
+
+# 3. 部署
+flyctl launch --no-deploy
+cat .env | flyctl secrets import  # 设置环境变量
+flyctl deploy
+
+# 4. 查看状态
+flyctl logs -f
+```
+
+**注意事项：**
+- 免费额度：3个共享CPU实例，每个256MB RAM
+- 修改 `fly.toml` 中的 `app` 名称
+- 区域选择 `sin`（新加坡）延迟最低
+
+### Render 部署
+
+Render 免费版可能有运行时间限制，建议使用 Fly.io 或升级到付费版。
 
 ### 一键部署
 1. **创建Render账户**
@@ -144,32 +201,25 @@ Railway不再提供免费版服务，推荐使用Render进行部署。
    - 等待部署完成，获取应用URL
    - 不需要设置Render内部健康检查，我们使用外部监控
 
-### 保活设置（重要）
+### 保活设置（Render 需要）
 
-Render 免费版会在 15 分钟无活动后休眠，推荐用 GitHub Actions 定时保活：
+**Fly.io 不需要保活**，服务会持续运行。
 
-1. **配置仓库变量/密钥**（此项目选变量就行）
-   - 进入 GitHub 仓库 → Settings → Secrets and variables → Actions
-   - 新增 `Variables`：
-     - 名称：`PING_URLS`
-     - 值：`https://your-app-name.onrender.com/health`
+**Render 免费版需要配置保活**：
 
-2. **验证部署**
-   ```bash
-   # 手动触发一次（Actions → keep-alive → Run workflow）后，按 .github/workflows/keep-alive.yml 里的计划自动执行
-   
-   # 检查服务状态
-   curl https://your-app-name.onrender.com/health
+1. 进入 GitHub 仓库 → Settings → Secrets and variables → Actions
+2. 新增 Variables：
+   - 名称：`PING_URLS`
+   - 值：`https://your-app-name.onrender.com/health`
 
-   # 查看详细状态
-   curl https://your-app-name.onrender.com/status
-   ```
+GitHub Actions 会每 5 分钟自动 ping 你的服务，保持活跃。
 
-### 免费版限制
-- **运行时间**: 750小时/月（约31天）
-- **内存**: 512MB RAM
-- **休眠机制**: 15分钟无活动后休眠
-- **解决方案**: 使用 GitHub Actions 定时保活（或 Render Cron Job）
+### 平台限制对比
+
+| 平台 | 免费额度 | 限制 | 保活 |
+|------|---------|------|------|
+| **Fly.io** | 3个256MB实例 | 无运行时间限制 | ❌ 不需要 |
+| **Render** | 750小时/月 | 可能有运行时间限制 | ⚠️ 可能需要 |
 
 ## 📚 文档结构
 

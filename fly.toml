@@ -1,0 +1,29 @@
+# Fly.io 部署配置
+app = "twitter-monitor"  # 改成你想要的应用名称
+primary_region = "sin"   # 新加坡区域，离中国近，延迟低
+
+[build]
+  # Fly.io 会自动检测 Node.js 项目并生成 Dockerfile
+
+[env]
+  NODE_ENV = "production"
+  PORT = "8080"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = false  # 不自动停止
+  auto_start_machines = true
+  min_machines_running = 1    # 至少保持 1 个实例运行
+  
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    timeout = "5s"
+    path = "/health"
+
+[[vm]]
+  memory = '256mb'  # 免费额度内
+  cpu_kind = 'shared'
+  cpus = 1

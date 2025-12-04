@@ -122,7 +122,8 @@ class MultiSourceMonitorApp {
      * 启动HTTP健康检查服务器
      */
     startHealthCheckServer() {
-        const port = this.sharedServices.config.config.system.port;
+        // 优先使用环境变量 PORT（Fly.io 等平台需要）
+        const port = process.env.PORT || this.sharedServices.config.config.system.port;
 
         // 请求日志频率限制
         this.lastLogTime = 0;
@@ -286,12 +287,12 @@ class MultiSourceMonitorApp {
             console.log(`📍 父进程ID: ${process.ppid}`);
             console.log(`📍 运行时间: ${Math.floor((Date.now() - this.startTime.getTime()) / 1000)}秒`);
             console.log(`📍 内存使用: ${Math.round(process.memoryUsage().rss / 1024 / 1024)}MB`);
-            
+
             // 记录环境变量（排查是否有特殊配置）
             console.log(`📍 NODE_ENV: ${process.env.NODE_ENV}`);
             console.log(`📍 RENDER: ${process.env.RENDER || 'false'}`);
             console.log(`📍 RENDER_SERVICE_NAME: ${process.env.RENDER_SERVICE_NAME || 'N/A'}`);
-            
+
             // 记录调用栈
             const stack = new Error().stack;
             console.log(`📍 调用栈:\n${stack}`);
