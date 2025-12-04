@@ -1,29 +1,23 @@
-# Fly.io 部署配置
-app = "twitter-monitor"  # 改成你想要的应用名称
-primary_region = "sin"   # 新加坡区域，离中国近，延迟低
+# fly.toml app configuration file generated for monitor-sw7lsq on 2025-12-04T06:30:01Z
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'monitor-sw7lsq'
+primary_region = 'sin'
 
 [build]
-  # Fly.io 会自动检测 Node.js 项目并生成 Dockerfile
-
-[env]
-  NODE_ENV = "production"
-  PORT = "8080"
 
 [http_service]
-  internal_port = 8080
+  internal_port = 3000
   force_https = true
-  auto_stop_machines = false  # 不自动停止
+  auto_stop_machines = 'stop'
   auto_start_machines = true
-  min_machines_running = 1    # 至少保持 1 个实例运行
-  
-  [[http_service.checks]]
-    grace_period = "10s"
-    interval = "30s"
-    method = "GET"
-    timeout = "5s"
-    path = "/health"
+  min_machines_running = 0
+  processes = ['app']
 
 [[vm]]
-  memory = '256mb'  # 免费额度内
+  memory = '256mb'
   cpu_kind = 'shared'
   cpus = 1
+  memory_mb = 256
